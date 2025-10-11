@@ -2,3 +2,5 @@ Flask
 Pillow
 google-genai
 python-dotenv
+werkzeug
+gunicorn
