@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interior AI Designer - Multi-View Edition</title>
+    <title>Interior AI Designer</title>
     <style>
         * {
             margin: 0;
@@ -36,54 +36,9 @@
             font-weight: 700;
         }
         
-        .mode-selector {
-            background: #f0f8ff;
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 30px;
-            text-align: center;
-        }
         
-        .mode-selector h3 {
-            color: #18605a;
-            margin-bottom: 15px;
-            font-size: 20px;
-        }
         
-        .mode-options {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .mode-option {
-            background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 200px;
-        }
-        
-        .mode-option:hover, .mode-option.active {
-            border-color: #488073;
-            background: #e6fffa;
-            transform: translateY(-2px);
-        }
-        
-        .mode-option h4 {
-            color: #2d3748;
-            margin-bottom: 8px;
-            font-size: 16px;
-        }
-        
-        .mode-option p {
-            color: #718096;
-            font-size: 14px;
-            line-height: 1.4;
-        }
+
         
         .upload-section {
             display: grid;
@@ -121,11 +76,6 @@
             color: #234e52;
         }
         
-        .upload-instructions.multi-view {
-            background: #fff5f5;
-            border-color: #fed7d7;
-            color: #742a2a;
-        }
         
         .upload-area {
             border: 2px dashed #cbd5e0;
@@ -222,14 +172,6 @@
             display: inline-block;
         }
         
-        .view-indicator {
-            background: #2b6cb0;
-            color: white;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 3px;
-            margin-left: 5px;
-        }
         
         .selection-section {
             background: #f7fafc;
@@ -396,11 +338,6 @@
             text-align: center;
         }
         
-        .generation-info.multi-view {
-            background: #fff5f5;
-            border-color: #fed7d7;
-        }
-        
         .images-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -420,10 +357,6 @@
             transform: translateY(-5px);
         }
         
-        .image-card.multi-view {
-            border: 2px solid #4fd1c7;
-        }
-        
         .image-header {
             display: flex;
             justify-content: between;
@@ -439,10 +372,6 @@
             font-size: 12px;
             font-weight: 600;
             text-transform: capitalize;
-        }
-        
-        .view-badge.connected {
-            background: #38a169;
         }
         
         .generated-image {
@@ -553,16 +482,6 @@
             font-size: 14px;
         }
         
-        .consistency-warning {
-            background: #fef5e7;
-            border: 1px solid #f6d55c;
-            border-radius: 8px;
-            padding: 12px;
-            margin-top: 10px;
-            font-size: 13px;
-            color: #744210;
-        }
-        
         .modal {
             display: none;
             position: fixed;
@@ -622,24 +541,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>🏠 Interior AI Designer - Multi-View Edition</h1>
+        <h1>🏠 Interior AI Designer</h1>
         
-        <!-- Mode Selection -->
-        <div class="mode-selector">
-            <h3>🎯 Choose Generation Mode</h3>
-            <div class="mode-options">
-                <div class="mode-option active" data-mode="single">
-                    <h4>📸 Single View</h4>
-                    <p>Transform one room with multiple style references or multiple rooms with one style</p>
-                </div>
-                <div class="mode-option" data-mode="multi">
-                    <h4>🏠 Multi-View Connected</h4>
-                    <p>Transform connected views (top, side, front) of the same room with spatial consistency</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Architecture Focus Section -->
         <div class="arch-focus-section">
             <h3>🏗️ Architecture Enhancement Settings</h3>
             <div class="arch-toggle">
@@ -657,32 +560,29 @@
         </div>
         
         <form id="designForm" enctype="multipart/form-data">
-            <!-- Upload Section -->
             <div class="upload-section">
                 <div class="upload-group">
-                    <h3>📷 Input Images</h3>
-                    <div class="upload-instructions" id="inputInstructions">
-                        <strong>Single View Mode:</strong> Upload 1+ interior images for transformation
+                    <h3>📷 Input Image</h3>
+                    <div class="upload-instructions">
+                        Upload <strong>1 interior image</strong> to transform
                     </div>
                     <div class="upload-area" onclick="document.getElementById('input_images').click()">
-                        <label class="upload-label">Upload Interior Images</label>
-                        <div class="upload-text">Click to select your interior images</div>
-                        <div class="upload-hint" id="inputHint">Upload 1-3 images of different rooms or views</div>
-                        <input type="file" id="input_images" name="input_images" multiple accept=".png,.jpg,.jpeg" required>
+                        <label class="upload-label">Upload Interior Image</label>
+                        <div class="upload-text">Click to select your room photo</div>
+                        <input type="file" id="input_images" name="input_images" accept=".png,.jpg,.jpeg" required>
                     </div>
                     <div id="input-file-names" class="file-names"></div>
                 </div>
                 
                 <div class="upload-group">
-                    <h3>🎨 Reference Images</h3>
-                    <div class="upload-instructions" id="referenceInstructions">
-                        <strong>Single View Mode:</strong> Upload 1+ style reference images
+                    <h3>🎨 Reference Image</h3>
+                    <div class="upload-instructions">
+                        Upload <strong>1 style reference</strong> image
                     </div>
                     <div class="upload-area" onclick="document.getElementById('reference_images').click()">
-                        <label class="upload-label">Upload Style References</label>
-                        <div class="upload-text">Click to select your reference styles</div>
-                        <div class="upload-hint" id="referenceHint">Upload 1-3 reference images for different styles</div>
-                        <input type="file" id="reference_images" name="reference_images" multiple accept=".png,.jpg,.jpeg" required>
+                        <label class="upload-label">Upload Style Reference</label>
+                        <div class="upload-text">Click to select your target style</div>
+                        <input type="file" id="reference_images" name="reference_images" accept=".png,.jpg,.jpeg" required>
                     </div>
                     <div id="reference-file-names" class="file-names"></div>
                 </div>
@@ -791,7 +691,7 @@
                               placeholder="Describe what you want to change (e.g., 'remove the red chair', 'add more plants', 'change wall color to blue', 'make the lighting warmer')"></textarea>
                     
                     <div class="consistency-warning" id="consistencyWarning" style="display: none;">
-                        ⚠️ This is a multi-view transformation. Your changes will be applied while maintaining consistency with other views of the same room.
+                        ⚠️ Your changes will be applied while maintaining consistency with other views of the same room.
                     </div>
                     
                     <button class="action-btn" id="tweakBtn" onclick="tweakImage()">🔧 Apply Tweak</button>
@@ -814,41 +714,7 @@
 
     <script>
         let generatedImages = [];
-        let currentMode = 'single';
-        let isMultiView = false;
         
-        // Mode selection handlers
-        document.querySelectorAll('.mode-option').forEach(option => {
-            option.addEventListener('click', function() {
-                document.querySelectorAll('.mode-option').forEach(opt => opt.classList.remove('active'));
-                this.classList.add('active');
-                currentMode = this.dataset.mode;
-                updateModeInstructions();
-            });
-        });
-        
-        function updateModeInstructions() {
-            const inputInstructions = document.getElementById('inputInstructions');
-            const referenceInstructions = document.getElementById('referenceInstructions');
-            const inputHint = document.getElementById('inputHint');
-            const referenceHint = document.getElementById('referenceHint');
-            
-            if (currentMode === 'multi') {
-                inputInstructions.innerHTML = '<strong>Multi-View Mode:</strong> Upload 2-3 connected views of the SAME room (e.g., top, side, front views)';
-                inputInstructions.classList.add('multi-view');
-                referenceInstructions.innerHTML = '<strong>Multi-View Mode:</strong> Upload 2-3 views of your desired style from the SAME reference room';
-                referenceInstructions.classList.add('multi-view');
-                inputHint.textContent = 'Upload multiple angles of the same space for connected transformation';
-                referenceHint.textContent = 'Upload corresponding views of your target style';
-            } else {
-                inputInstructions.innerHTML = '<strong>Single View Mode:</strong> Upload 1+ interior images for transformation';
-                inputInstructions.classList.remove('multi-view');
-                referenceInstructions.innerHTML = '<strong>Single View Mode:</strong> Upload 1+ style reference images';
-                referenceInstructions.classList.remove('multi-view');
-                inputHint.textContent = 'Upload 1-3 images of different rooms or views';
-                referenceHint.textContent = 'Upload 1-3 reference images for different styles';
-            }
-        }
         
         // File upload handlers
         document.getElementById('input_images').addEventListener('change', function(e) {
@@ -863,12 +729,12 @@
             const container = document.getElementById(containerId);
             container.innerHTML = '';
             
-            Array.from(files).forEach((file, index) => {
+            if (files.length > 0) {
                 const fileDiv = document.createElement('div');
                 fileDiv.className = 'file-name';
-                fileDiv.innerHTML = `${file.name} <span class="view-indicator">Auto-detect view</span>`;
+                fileDiv.textContent = files[0].name;
                 container.appendChild(fileDiv);
-            });
+            }
         }
         
         // Form submission
@@ -876,6 +742,9 @@
             e.preventDefault();
             
             const formData = new FormData(this);
+            formData.append('preserve_layout', document.getElementById('preserveLayout').checked);
+            formData.append('enhance_realism', document.getElementById('enhanceRealism').checked);
+
             const btn = document.getElementById('generateBtn');
             const loading = document.getElementById('loading');
             const loadingText = document.getElementById('loadingText');
@@ -884,18 +753,13 @@
             // Validate inputs
             const inputFiles = document.getElementById('input_images').files;
             const referenceFiles = document.getElementById('reference_images').files;
-            
-            if (inputFiles.length === 0 || referenceFiles.length === 0) {
-                alert('Please select both input and reference images');
+
+            if (inputFiles.length !== 1 || referenceFiles.length !== 1) {
+                alert('Please select exactly 1 input image and 1 reference image');
                 return;
             }
             
-            // Update loading text based on mode
-            if (currentMode === 'multi' && inputFiles.length > 1 && referenceFiles.length > 1) {
-                loadingText.textContent = '🏠 Creating connected multi-view transformations...';
-            } else {
-                loadingText.textContent = '🎨 Creating your design transformations...';
-            }
+            loadingText.textContent = '🎨 Creating your 3 design variations...';
             
             btn.disabled = true;
             btn.textContent = 'Generating...';
@@ -922,8 +786,7 @@
                     progressFill.style.width = '100%';
                     
                     setTimeout(() => {
-                        showResults(result.images, result.tweaks_remaining, result.generation_type, result.view_mapping);
-                        loading.style.display = 'none';
+                        showResults(result.images, result.tweaks_remaining);                        loading.style.display = 'none';
                         progressFill.style.width = '0%';
                     }, 500);
                 } else {
@@ -940,48 +803,28 @@
             }
         });
         
-        function showResults(images, tweaksRemaining, generationType, viewMapping) {
+        function showResults(images, tweaksRemaining) {
             generatedImages = images;
-            isMultiView = generationType === 'multi_view';
             
             const resultSection = document.getElementById('resultSection');
             const imagesGrid = document.getElementById('imagesGrid');
             const tweakSelect = document.getElementById('tweakImageSelect');
             const generationInfo = document.getElementById('generationInfo');
-            const consistencyWarning = document.getElementById('consistencyWarning');
             
-            // Update generation info
-            if (isMultiView) {
-                generationInfo.classList.add('multi-view');
-                generationInfo.innerHTML = `
-                    <strong>🏠 Multi-View Connected Transformation</strong><br>
-                    Generated ${images.length} connected views with spatial consistency<br>
-                    <em>Views detected: ${viewMapping ? viewMapping.join(', ') : 'auto-detected'}</em>
-                `;
-                consistencyWarning.style.display = 'block';
-            } else {
-                generationInfo.classList.remove('multi-view');
-                generationInfo.innerHTML = `
-                    <strong>📸 Single View Transformation</strong><br>
-                    Generated ${images.length} design variations
-                `;
-                consistencyWarning.style.display = 'none';
-            }
+            generationInfo.innerHTML = `Generated 3 design variations based on your reference`;
             
-            // Clear previous results
             imagesGrid.innerHTML = '';
             tweakSelect.innerHTML = '';
             
-            // Create image cards
             images.forEach((image, index) => {
                 const card = document.createElement('div');
-                card.className = `image-card ${isMultiView ? 'multi-view' : ''}`;
+                card.className = 'image-card';
                 
                 card.innerHTML = `
                     <div class="image-header">
-                        <span class="view-badge ${isMultiView ? 'connected' : ''}">${image.view_type || `Style ${index + 1}`}</span>
+                        <span class="view-badge">Variation ${image.variation}</span>
                     </div>
-                    <img src="${image.url}" class="generated-image" alt="Transformed Interior ${index + 1}">
+                    <img src="${image.url}" class="generated-image" alt="Variation ${image.variation}">
                     <div class="image-actions">
                         <button class="action-btn tweak-btn" onclick="openTweakForImage(${index})">🔧 Tweak</button>
                         <button class="action-btn download-btn" onclick="downloadSingle(${index})">📥 Download</button>
@@ -990,23 +833,14 @@
                 
                 imagesGrid.appendChild(card);
                 
-                // Add to tweak selector
                 const option = document.createElement('option');
                 option.value = index;
-                option.textContent = `${image.view_type || `Image ${index + 1}`} ${isMultiView ? '(Connected)' : ''}`;
+                option.textContent = `Variation ${image.variation}`;
                 tweakSelect.appendChild(option);
             });
             
-            // Update tweak counter
             document.getElementById('tweakCounter').textContent = `Tweaks remaining: ${tweaksRemaining}`;
-           
-            // Show/hide tweak section
-            const tweakSection = document.getElementById('tweakSection');
-            if (tweaksRemaining <= 0) {
-                tweakSection.style.display = 'none';
-            } else {
-                tweakSection.style.display = 'block';
-            }
+            document.getElementById('tweakSection').style.display = tweaksRemaining > 0 ? 'block' : 'none';
             
             resultSection.style.display = 'block';
             resultSection.scrollIntoView({ behavior: 'smooth' });

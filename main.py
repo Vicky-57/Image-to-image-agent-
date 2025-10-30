@@ -1,3 +1,520 @@
+# from flask import Flask, request, jsonify, send_file, session, render_template
+# from werkzeug.utils import secure_filename
+# import os
+# from google import genai
+# from google.genai import types
+# import uuid
+# from dotenv import load_dotenv
+# import shutil
+# import json
+
+# load_dotenv()
+
+# app = Flask(__name__)
+# app.config['MAX_CONTENT_LENGTH'] = 64 * 1024 * 1024  # 64MB max for multiple images
+# app.secret_key = os.getenv('SECRET_KEY', 'your-secret-key-here')
+
+# # Initialize Gemini client
+# client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+
+# ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+# # Create directories if they don't exist
+# os.makedirs('uploads/input', exist_ok=True)
+# os.makedirs('uploads/reference', exist_ok=True)
+# os.makedirs('generated', exist_ok=True)
+# os.makedirs('templates', exist_ok=True)
+
+# def allowed_file(filename):
+#     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# def save_binary_file(file_name, data):
+#     with open(file_name, "wb") as f:
+#         f.write(data)
+
+# def get_user_session():
+#     if 'user_id' not in session:
+#         session['user_id'] = str(uuid.uuid4())
+#         session['tweaks_used'] = 0
+#         session.permanent = True
+#     return session['user_id']
+
+
+# def get_style_description(style):
+#     """Enhanced architecture-focused style descriptions with photorealistic details"""
+#     descriptions = {
+#         'modern': 'ultra-clean geometric lines with precision edges, seamless minimal ornamentation, expansive open floor plans, floor-to-ceiling windows with visible glass reflections, sophisticated neutral color palettes with subtle tonal variations, polished smooth surfaces with realistic material sheen, contemporary designer furniture with accurate proportions',
+#         'rustic': 'authentic natural wood beams with visible grain patterns and knots, genuine stone textures with depth and variation, warm earth tones with natural color gradients, handcrafted elements showing realistic craftsmanship details, traditional joinery with visible connections, cozy proportions with intimate scale, weathered finishes with natural patina',
+#         'industrial': 'authentic exposed structural steel beams with realistic metal textures, raw concrete surfaces with visible aggregate and subtle imperfections, aged metal fixtures with oxidation and wear patterns, polished concrete floors with natural variations, dramatic high ceilings with proper perspective, utilitarian aesthetics with functional details, Edison bulbs with realistic filament glow',
+#         'scandinavian': 'light blonde wood finishes with natural grain visible, pure white walls with soft light bounce, functional minimalist furniture with clean joinery, abundant diffused natural lighting through sheer curtains, simple geometric forms with precise edges, textured wool and linen fabrics, hygge comfort elements like sheepskin throws, subtle warm color accents',
+#         'traditional': 'classical architectural proportions with proper molding details, rich mahogany or walnut wood with deep grain, detailed crown moldings with realistic shadow depth, established color schemes with layered tones, formal symmetrical arrangements, ornate hardware with metallic luster, plush upholstery with fabric texture detail',
+#         'contemporary': 'current design trends with bold geometric forms, mixed materials showing distinct textures (wood, metal, glass, stone), dramatic architectural features with proper scale, flexible living spaces with multifunctional elements, statement lighting fixtures with realistic illumination, neutral base with strategic color pops, large format tiles or continuous flooring',
+#         'minimalist': 'essential elements only with breathing room, pristine clean surfaces with subtle reflections, abundant natural light with soft shadows, functional built-ins with seamless integration, neutral materials (concrete, white oak, matte black steel), hidden storage solutions, monochromatic color schemes, emphasis on negative space and proportion',
+#         'bohemian': 'eclectic layered textiles with varied patterns and textures, rich jewel-toned color palette, globally-inspired decorative elements, mixed wood furniture with different finishes, abundant plants with realistic foliage, vintage Persian or kilim rugs with intricate patterns, macramé and woven elements, collected artifacts with authentic detail',
+#         'mediterranean': 'warm ochre and terracotta stucco walls with textured finish, natural limestone or travertine stone with visible variation, graceful arched openings with proper structural detail, wrought iron fixtures with authentic metalwork, terra cotta tile roofing or flooring, white-washed wood beams, seamless indoor-outdoor flow, cobalt blue accent tiles',
+#         'farmhouse': 'shiplap or beadboard walls with visible wood grain and gaps, vintage barn-style sliding doors on black metal hardware, apron-front farmhouse sinks, distressed wood furniture with authentic wear patterns, subway tiles with classic layout, butcher block countertops with natural wood texture, vintage-style pendant lights, comfortable slipcovered furniture, open shelving with rustic brackets'
+#     }
+#     return descriptions.get(style, '')
+
+# def get_finish_description(finish):
+#     """Enhanced finish descriptions with precise material rendering properties"""
+#     descriptions = {
+#         'matte': 'completely non-reflective surfaces with no specular highlights, subtle micro-texture variation visible up close, reduced glare maintaining true material colors, sophisticated understated appearance with depth from texture rather than shine, light absorption creating soft edges, fingerprint-resistant quality implied by surface treatment',
+#         'glossy': 'mirror-like high-shine surfaces with sharp specular reflections, strong directional light reflection showing environment, ultra-smooth polished texture with glass-like quality, formal elegant appearance with depth from reflections, crisp light catchlights, reflections of surrounding objects and lighting visible, wet-look finish on surfaces',
+#         'textured': 'pronounced surface relief with visible shadow patterns, three-dimensional tactile material quality, visual depth from varied surface angles catching light differently, natural material feel with organic irregularity, shadows within texture creating complexity, rough or embossed patterns clearly visible, authentic material grain or weave',
+#         'satin': 'subtle semi-gloss sheen with soft diffused reflections, balanced light reflection between matte and gloss, elegant sophisticated finish with gentle luminosity, versatile appearance working in multiple lighting conditions, pearl-like luster with directional highlight, smooth but not mirror-like surface quality',
+#         'distressed': 'authentic weathered patina with natural aging patterns, vintage character marks showing realistic wear, aged material appearance with color variation and fading, deliberate distressing looking naturally evolved, exposed base materials through worn top layers, rustic authenticity with historical narrative, intentional imperfections in finish',
+#         'polished': 'pristine mirror-like surfaces with crystal-clear reflections, maximum light reflection creating dramatic highlights, premium luxury appearance with flawless finish, high-end materials like polished marble or lacquer, sharp environmental reflections, wet-look depth, buffed to perfection with no visible imperfections'
+#     }
+#     return descriptions.get(finish, '')
+
+# def get_theme_description(theme):
+#     """Enhanced theme descriptions with photorealistic spatial details"""
+#     descriptions = {
+#         'kitchen': 'professional kitchen space with realistic cabinetry showing wood grain or paint finish, authentic countertop materials (granite, quartz, marble) with natural veining, functional cooking areas with proper appliance integration, task lighting with realistic shadows, backsplash with dimensional tiles, hardware with metallic finish, proper spatial clearances',
+#         'bathroom': 'spa-like bathroom with authentic tile work showing grout lines, realistic plumbing fixtures with chrome or brass finish, natural stone or porcelain surfaces with proper texture, layered lighting (ambient, task, accent), glass shower enclosures with subtle reflections, textured towels and bath linens, steam and moisture implied by material choices',
+#         'living': 'inviting living room with comfortable upholstered furniture showing fabric texture, layered lighting creating ambient glow, entertainment center integration, area rugs with visible pile and pattern, coffee table styling with realistic objects, window treatments with natural drape, architectural details like moldings or built-ins, proper furniture scale and spacing',
+#         'bedroom': 'serene bedroom with luxurious bedding showing fabric folds and texture, bedside lighting with warm glow, dresser or storage furniture with realistic wood or finish, window treatments filtering natural light, area rug grounding the bed, decorative pillows with varied textures, nightstands with styled accessories, intimate scale and proportion',
+#         'dining': 'elegant dining room with substantial dining table showing wood grain or finish, coordinated seating with upholstery detail, statement chandelier or pendant lighting with realistic illumination, buffet or sideboard with decorative styling, table setting with dishes and glassware, window treatments, area rug defining the space, proper clearances around furniture',
+#         'office': 'productive home office with functional desk showing work surface material, ergonomic task seating, organized storage solutions (shelving, filing), task lighting with focused illumination, technology integration, inspirational artwork or vision board, window providing natural light, professional but personal styling',
+#         'entryway': 'welcoming foyer with durable flooring material, console table or bench with realistic finish, mirror with decorative frame, coat storage solutions, table lamp or pendant lighting, area rug, decorative bowl or tray, artwork creating first impression, proper scale for traffic flow',
+#         'laundry': 'efficient laundry room with front-load washer/dryer showing realistic appliance details, utility sink, organized storage cabinets, countertop for folding with proper surface material, task lighting, drying rack or hanging rod, tile or luxury vinyl flooring, functional hardware',
+#         'storage': 'organized storage room with custom shelving systems, bins and baskets with realistic materials, labeled organization, proper lighting to see contents, durable flooring, potentially climate control elements, efficient use of vertical space',
+#         'basement': 'finished basement space with proper ceiling treatment (drywall or exposed painted joists), appropriate flooring (carpet, LVP, stained concrete), defined zones (entertainment, workout, storage), adequate artificial lighting, furniture scaled for ceiling height, cozy atmosphere despite below-grade location',
+#         'attic': 'converted attic space with exposed roof lines and proper insulation treatment, skylights or dormers providing natural light, creative furniture placement accommodating sloped ceilings, appropriate flooring, ambient lighting adapted to unique geometry, cozy built-ins maximizing awkward spaces',
+#         'garage': 'organized garage with epoxy-coated or sealed concrete floor, wall-mounted storage systems, proper lighting (overhead fluorescent or LED), workbench area, tool organization, overhead storage racks, clean and functional appearance, automotive or workshop equipment',
+#         'closet': 'luxurious walk-in closet with custom built-in cabinetry in light wood or white finish, organized clothing displays, island with drawers showing realistic hardware, full-length mirror, boutique-style lighting, seating area, shoe display shelving, accessory organization, carpet or luxury flooring'
+#     }
+#     return descriptions.get(theme, 'interior space')
+
+
+# @app.route('/generate', methods=['POST'])
+# def generate_interior():
+#     user_id = get_user_session()
+    
+#     # Get form data
+#     context = request.form.get('context', '').strip()
+#     selected_style = request.form.get('style', '').strip() or None
+#     selected_finish = request.form.get('finish', '').strip() or None
+#     selected_theme = request.form.get('theme', '').strip() or None
+#     preserve_layout = request.form.get('preserve_layout', 'true') == 'true'
+#     enhance_realism = request.form.get('enhance_realism', 'true') == 'true'
+    
+#     # Get uploaded files
+#     input_files = request.files.getlist('input_images')
+#     reference_files = request.files.getlist('reference_images')
+    
+#     # Validation
+#     if len(input_files) != 1 or len(reference_files) != 1:
+#         return jsonify({'error': 'Please upload exactly 1 input image and 1 reference image'}), 400
+    
+#     input_file = input_files[0]
+#     reference_file = reference_files[0]
+    
+#     if not allowed_file(input_file.filename) or not allowed_file(reference_file.filename):
+#         return jsonify({'error': 'Only PNG, JPG, JPEG files allowed'}), 400
+    
+#     try:
+#         # Save and upload files
+#         input_filename = f"uploads/input/{user_id}_input_{uuid.uuid4().hex[:8]}.jpg"
+#         reference_filename = f"uploads/reference/{user_id}_reference_{uuid.uuid4().hex[:8]}.jpg"
+        
+#         input_file.save(input_filename)
+#         reference_file.save(reference_filename)
+        
+#         input_gemini_file = client.files.upload(file=input_filename)
+#         reference_gemini_file = client.files.upload(file=reference_filename)
+        
+#         # Generate 3 variations
+#         generated_outputs = []
+        
+#         for variation in range(3):
+#             output_filename = f"generated/{user_id}_output_{variation}_{uuid.uuid4().hex[:8]}.jpg"
+            
+#             # Build ENHANCED photorealistic prompt
+#             style_text = f"- **Style Requirements**: {selected_style.title()} - {get_style_description(selected_style)}\n" if selected_style else ""
+#             finish_text = f"- **Surface Finish**: {selected_finish.title()} - {get_finish_description(selected_finish)}\n" if selected_finish else ""
+#             theme_text = f"- **Space Type**: {selected_theme.title()} - {get_theme_description(selected_theme)}\n" if selected_theme else "- **Space Type**: Identify and render room type with authentic details\n"
+            
+#             layout_instruction = "CRITICAL: Maintain EXACT room dimensions, wall positions, window locations, and ceiling height from input image" if preserve_layout else "You may adjust room proportions for improved design while maintaining realistic architecture"
+            
+#             # ENHANCED REALISM SECTION
+#             if enhance_realism:
+#                 realism_instruction = """
+#                 PHOTOREALISTIC RENDERING REQUIREMENTS (CRITICAL):
+                
+#                 LIGHTING SIMULATION (HIGHEST PRIORITY):
+#                 - Simulate authentic THREE-POINT LIGHTING with key, fill, and rim lights
+#                 - Create realistic SOFT SHADOWS with proper penumbra (soft edges)
+#                 - Add AMBIENT OCCLUSION in corners and where objects meet surfaces
+#                 - Include SPECULAR HIGHLIGHTS on reflective materials (glass, metal, polished wood)
+#                 - Show LIGHT BOUNCE and color bleeding from surfaces
+#                 - Render CAUSTICS (light patterns through glass/water)
+#                 - Add subtle LENS FLARE or BLOOM on bright light sources
+#                 - Create DEPTH through atmospheric perspective and light falloff
+                
+#                 MATERIAL AUTHENTICITY:
+#                 - Wood: Show realistic grain patterns, knots, color variation, subtle sheen on finish
+#                 - Metal: Render accurate reflections, anisotropic highlights, oxidation/patina where appropriate
+#                 - Fabric: Display weave patterns, wrinkles, light absorption, subtle fuzz on edges
+#                 - Glass: Show transparency with distortion, edge highlights, subtle reflections
+#                 - Stone/Tile: Render natural variation in color/pattern, grout lines, subtle surface texture
+#                 - Paint: Show slight texture, sheen variation, subtle color shifts in different lighting
+                
+#                 SURFACE QUALITY:
+#                 - Add MICRO-DETAILS: dust particles in light rays, subtle surface imperfections
+#                 - Include NORMAL MAPPING effects for texture depth without geometry
+#                 - Show realistic WEAR PATTERNS on high-traffic areas
+#                 - Add SUBSURFACE SCATTERING on translucent materials (lampshades, thin fabric)
+#                 - Render accurate FRESNEL EFFECTS (reflectivity increases at glancing angles)
+                
+#                 SPATIAL REALISM:
+#                 - Use accurate DEPTH OF FIELD with foreground/background blur gradient
+#                 - Apply ATMOSPHERIC PERSPECTIVE (distant objects slightly hazed/desaturated)
+#                 - Show PROPER SCALE relationships between all furniture and architectural elements
+#                 - Maintain CORRECT PERSPECTIVE with vanishing points and horizon line
+#                 - Add subtle LENS DISTORTION as from professional architectural photography
+                
+#                 COLOR & TONE:
+#                 - Use REALISTIC COLOR TEMPERATURE (warm 2700-3000K for ambiance, cool 5000K+ for task)
+#                 - Apply natural COLOR GRADING like high-end architectural photography
+#                 - Show DYNAMIC RANGE with bright highlights and deep shadows (not overexposed/underexposed)
+#                 - Include subtle COLOR CONTRAST between light and shadow areas
+#                 - Add CHROMATIC ABERRATION subtly at high-contrast edges
+                
+#                 POST-PROCESSING EFFECTS:
+#                 - Apply professional COLOR CORRECTION for magazine-quality appearance
+#                 - Add slight FILM GRAIN or noise for organic, non-CG feeling
+#                 - Use UNSHARP MASKING for crisp details without over-sharpening
+#                 - Include subtle VIGNETTING to draw eye to center
+#                 - Apply TONE MAPPING for HDR-like dynamic range
+#                 """
+#             else:
+#                 realism_instruction = "Apply standard rendering quality with basic lighting and materials"
+            
+#             prompt = f"""
+#             You are an ELITE ARCHITECTURAL VISUALIZATION SPECIALIST creating PHOTOREALISTIC 3D RENDERS for high-end design magazines and luxury real estate marketing.
+            
+#             This is VARIATION {variation + 1} of 3 - create a UNIQUE interpretation while maintaining absolute photorealism.
+
+#             🏗️ ARCHITECTURAL FOUNDATION:
+#             - {layout_instruction}
+#             - Preserve structural integrity with load-bearing walls and proper construction logic
+#             - Maintain realistic ceiling heights (8-12 feet typical)
+#             - Keep windows and doors in architecturally sound positions
+#             - Ensure proper circulation space and ergonomic clearances
+            
+#             {realism_instruction}
+
+#              DESIGN AESTHETIC TRANSFORMATION:
+#             {style_text}{finish_text}{theme_text}
+            
+#             REFERENCE IMAGE EXTRACTION:
+#             Study the reference image and extract:
+#             - Complete color palette with specific tones and values
+#             - Material selections with accurate textures
+#             - Furniture styles and proportions
+#             - Decorative elements and accessories
+#             - Lighting design approach
+#             - Overall mood and atmosphere
+            
+#             Apply this aesthetic COMPLETELY to the input space while maintaining photorealistic execution.
+            
+#             USER INSTRUCTIONS:
+#             {context if context else 'Transform this space into a stunning, photorealistic interior that could be featured in Architectural Digest or Elle Decor.'}
+            
+#             VARIATION STRATEGY FOR #{variation + 1}:
+#             {'- Primary camera angle: slight right perspective, hero lighting from left' if variation == 0 else ''}
+#             {'- Primary camera angle: centered symmetrical view, balanced lighting' if variation == 1 else ''}
+#             {'- Primary camera angle: slight left perspective, hero lighting from right' if variation == 2 else ''}
+            
+#             FINAL QUALITY CHECK:
+#             ✓ Could this render be mistaken for a professional photograph?
+#             ✓ Are materials indistinguishable from reality?
+#             ✓ Does lighting create authentic mood and dimension?
+#             ✓ Are all details sharp, properly scaled, and believable?
+#             ✓ Would a luxury design magazine publish this image?
+            
+#             If the answer to ANY question is no, enhance until it's yes.
+            
+#             OUTPUT: A FLAWLESS, PHOTOREALISTIC ARCHITECTURAL RENDER showing professional interior design execution with authentic materials, expert lighting, and impeccable attention to detail.
+#             """
+            
+#             # Generate with optimized parameters
+#             contents = [
+#                 types.Content(
+#                     role="user",
+#                     parts=[
+#                         types.Part.from_uri(file_uri=input_gemini_file.uri, mime_type=input_gemini_file.mime_type),
+#                         types.Part.from_uri(file_uri=reference_gemini_file.uri, mime_type=reference_gemini_file.mime_type),
+#                         types.Part.from_text(text=prompt),
+#                     ],
+#                 )
+#             ]
+            
+#             # OPTIMIZED GENERATION PARAMETERS FOR REALISM
+#             config = types.GenerateContentConfig(
+#                 temperature=0.3 + (variation * 0.05),  # Lower temperature for consistency, slight variation
+#                 top_p=0.90,  # Higher top_p for quality sampling
+#                 top_k=50,  # Add top_k for better quality control
+#                 max_output_tokens=8192,
+#                 response_modalities=["image"],
+#                 response_mime_type="text/plain",
+#             )
+            
+#             for chunk in client.models.generate_content_stream(
+#                 model="gemini-2.0-flash-exp-image-generation",
+#                 contents=contents,
+#                 config=config,
+#             ):
+#                 if (chunk.candidates and chunk.candidates[0].content and 
+#                     chunk.candidates[0].content.parts and 
+#                     chunk.candidates[0].content.parts[0].inline_data):
+                    
+#                     save_binary_file(output_filename, chunk.candidates[0].content.parts[0].inline_data.data)
+#                     generated_outputs.append({
+#                         'filename': output_filename,
+#                         'url': f'/view_image/{os.path.basename(output_filename)}',
+#                         'variation': variation + 1
+#                     })
+#                     break
+        
+#         # Store session
+#         session['current_images'] = [output['filename'] for output in generated_outputs]
+#         session['original_input'] = input_filename
+#         session['original_reference'] = reference_filename
+#         session['tweaks_used'] = 0
+#         session['generation_params'] = {
+#             'style': selected_style,
+#             'finish': selected_finish,
+#             'theme': selected_theme,
+#             'context': context,
+#             'preserve_layout': preserve_layout,
+#             'enhance_realism': enhance_realism
+#         }
+        
+#         return jsonify({
+#             'success': True,
+#             'images': [{'url': output['url'], 'variation': output['variation']} for output in generated_outputs],
+#             'tweaks_remaining': 3 - session['tweaks_used'],
+#             'total_generated': 3
+#         })
+        
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
+
+
+# @app.route('/tweak', methods=['POST'])
+# def tweak_image():
+#     user_id = get_user_session()
+    
+#     if session['tweaks_used'] >= 3:
+#         return jsonify({'error': 'You have used all your tweaks for this session'}), 400
+    
+#     if 'current_images' not in session:
+#         return jsonify({'error': 'No images to tweak. Please generate images first.'}), 400
+    
+#     data = request.json
+#     tweak_instruction = data.get('instruction', '')
+#     image_index = data.get('image_index', 0)
+    
+#     if not tweak_instruction:
+#         return jsonify({'error': 'Tweak instruction is required'}), 400
+    
+#     try:
+#         current_images = session['current_images']
+#         if image_index >= len(current_images):
+#             return jsonify({'error': 'Invalid image index'}), 400
+        
+#         current_image_path = current_images[image_index]
+#         if not os.path.exists(current_image_path):
+#             return jsonify({'error': 'Original image not found'}), 400
+        
+#         # Upload current image to Gemini
+#         current_gemini_file = client.files.upload(file=current_image_path)
+        
+#         # Get generation parameters
+#         params = session.get('generation_params', {})
+        
+#         # Create ENHANCED tweak prompt with photorealism
+#         prompt = f"""
+#         🔧 PROFESSIONAL ARCHITECTURAL MODIFICATION with PHOTOREALISTIC EXECUTION
+        
+#         You are a professional architectural renderer making PRECISE PHOTOREALISTIC modifications to this interior space.
+        
+#         MODIFICATION REQUEST:
+#         {tweak_instruction}
+        
+#         🎯 PHOTOREALISTIC EXECUTION REQUIREMENTS:
+        
+#         LIGHTING INTEGRATION:
+#         - Ensure modifications match existing lighting direction and quality
+#         - Add proper shadows where new elements block light
+#         - Include realistic highlights on reflective new surfaces
+#         - Maintain ambient occlusion in corners and crevices
+#         - Show light bounce and color bleeding from surrounding surfaces
+#         - Preserve overall lighting mood and temperature
+        
+#         MATERIAL AUTHENTICITY:
+#         - Render modifications with exact material properties:
+#           * Wood: visible grain, natural color variation, appropriate sheen
+#           * Metal: accurate reflections, anisotropic highlights, proper finish
+#           * Fabric: texture weave, natural draping, light absorption
+#           * Glass: transparency, distortion, edge highlights, reflections
+#           * Paint/Plaster: slight texture, appropriate sheen level
+#         - Show realistic wear and aging where appropriate
+#         - Include micro-details like dust, subtle imperfections
+        
+#         SPATIAL INTEGRATION:
+#         - Match perspective and vanishing points exactly
+#         - Maintain accurate scale relative to existing elements
+#         - Show proper depth of field matching the original
+#         - Include appropriate atmospheric effects
+#         - Ensure modifications respect architectural logic
+        
+#         CONSISTENCY MAINTENANCE:
+#         - Preserve overall {params.get('style', 'current')} style aesthetic
+#         - Maintain {params.get('finish', 'current')} surface finish quality throughout
+#         - Keep faithful to {params.get('theme', 'current')} room function and purpose
+#         - Match color temperature and grading of original image
+#         - Ensure modifications enhance rather than detract from design unity
+        
+#         QUALITY STANDARDS:
+#         - Modifications must be INDISTINGUISHABLE from reality
+#         - Seamlessly blend with unmodified portions of image
+#         - Maintain magazine-quality architectural photography appearance
+#         - Show professional craftsmanship in execution
+#         - Include appropriate shadows, reflections, and light interaction
+        
+#         THREE-DIMENSIONAL REALISM:
+#         - Create authentic depth and volume, not flat surface changes
+#         - Show proper thickness of materials (walls, countertops, etc.)
+#         - Include edge details and transitions between materials
+#         - Render realistic joinery and construction methods
+#         - Add subtle imperfections that make it look real and built
+        
+#         Execute this modification with FLAWLESS PHOTOREALISTIC PRECISION, creating a result that could be a professional photograph rather than a render.
+#         """
+        
+#         # Prepare content for tweaking
+#         contents = [
+#             types.Content(
+#                 role="user",
+#                 parts=[
+#                     types.Part.from_uri(file_uri=current_gemini_file.uri, mime_type=current_gemini_file.mime_type),
+#                     types.Part.from_text(text=prompt),
+#                 ],
+#             )
+#         ]
+        
+#         # OPTIMIZED generation config for precise, realistic modifications
+#         config = types.GenerateContentConfig(
+#             temperature=0.25,  # Very low temperature for precise, controlled modifications
+#             top_p=0.85,
+#             top_k=40,
+#             max_output_tokens=8192,
+#             response_modalities=["image"],
+#             response_mime_type="image/jpeg",
+#         )
+        
+#         # Generate tweaked image
+#         tweaked_filename = f"generated/{user_id}_tweaked_{image_index}_{uuid.uuid4().hex[:8]}.jpg"
+        
+#         image_generated = False
+#         for chunk in client.models.generate_content_stream(
+#             model="gemini-2.0-flash-exp-image-generation",
+#             contents=contents,
+#             config=config,
+#         ):
+#             if (chunk.candidates and chunk.candidates[0].content and 
+#                 chunk.candidates[0].content.parts and 
+#                 chunk.candidates[0].content.parts[0].inline_data):
+                
+#                 save_binary_file(tweaked_filename, chunk.candidates[0].content.parts[0].inline_data.data)
+                
+#                 # Update session
+#                 session['current_images'][image_index] = tweaked_filename
+#                 session['tweaks_used'] += 1
+                
+#                 image_generated = True
+#                 break
+        
+#         if image_generated:
+#             return jsonify({
+#                 'success': True,
+#                 'image_url': f'/view_image/{os.path.basename(tweaked_filename)}',
+#                 'tweaks_remaining': 3 - session['tweaks_used'],
+#                 'image_index': image_index,
+#             })
+#         else:
+#             return jsonify({'error': 'No tweaked image generated'}), 500
+        
+#     except Exception as e:
+#         print(f"Error in tweak_image: {str(e)}")
+#         return jsonify({'error': str(e)}), 500
+
+
+# @app.route('/view_image/<filename>')
+# def view_image(filename):
+#     print("Trying to load:", filename)
+#     file_path = f'generated/{filename}'
+#     if not os.path.exists(file_path):
+#         return jsonify({'error': 'File not found'}), 404
+#     return send_file(file_path)
+
+
+# @app.route('/download_image')
+# def download_image():
+#     image_index = request.args.get('index', 0, type=int)
+    
+#     if 'current_images' not in session:
+#         return jsonify({'error': 'No images to download'}), 400
+    
+#     current_images = session['current_images']
+#     if image_index >= len(current_images):
+#         return jsonify({'error': 'Invalid image index'}), 400
+    
+#     current_image_path = current_images[image_index]
+#     if not os.path.exists(current_image_path):
+#         return jsonify({'error': 'Image file not found'}), 400
+    
+#     variation_number = image_index + 1
+#     return send_file(current_image_path, as_attachment=True, 
+#                 download_name=f'photorealistic_render_v{variation_number}.jpg')
+
+# @app.route('/download_all')
+# def download_all():
+#     if 'current_images' not in session:
+#         return jsonify({'error': 'No images to download'}), 400
+    
+#     import zipfile
+#     import tempfile
+    
+#     current_images = session['current_images']
+    
+#     # Create temporary zip file
+#     temp_zip = tempfile.NamedTemporaryFile(delete=False, suffix='.zip')
+    
+#     with zipfile.ZipFile(temp_zip.name, 'w') as zipf:
+#         for i, image_path in enumerate(current_images):
+#             if os.path.exists(image_path):
+#                 zipf.write(image_path, f'photorealistic_render_v{i + 1}.jpg')    
+    
+#     return send_file(temp_zip.name, as_attachment=True, 
+#                     download_name='photorealistic_interior_renders.zip')
+
+# @app.route('/reset_session')
+# def reset_session():
+#     session.clear()
+#     return jsonify({'success': True, 'message': 'Session reset successfully'})
+
+# @app.route('/')
+# def index():
+#     return render_template('index.html')
+
+# if __name__ == '__main__':
+#     app.run(debug=True)
+
 from flask import Flask, request, jsonify, send_file, session, render_template
 from werkzeug.utils import secure_filename
 import os
@@ -262,191 +779,92 @@ def create_multi_view_consistency_prompt(view_type, all_view_types, style, finis
 def generate_interior():
     user_id = get_user_session()
     
-    # Get form data - handle empty strings as None
+    # Get form data
     context = request.form.get('context', '').strip()
     selected_style = request.form.get('style', '').strip() or None
     selected_finish = request.form.get('finish', '').strip() or None
     selected_theme = request.form.get('theme', '').strip() or None
+    preserve_layout = request.form.get('preserve_layout', 'true') == 'true'
+    enhance_realism = request.form.get('enhance_realism', 'true') == 'true'
     
     # Get uploaded files
     input_files = request.files.getlist('input_images')
     reference_files = request.files.getlist('reference_images')
     
-    # Validate files
-    if not input_files or not reference_files:
-        return jsonify({'error': 'Both input and reference images are required'}), 400
+    # Validation
+    if len(input_files) != 1 or len(reference_files) != 1:
+        return jsonify({'error': 'Please upload exactly 1 input image and 1 reference image'}), 400
     
-    # Filter out empty files
-    input_files = [f for f in input_files if f.filename != '']
-    reference_files = [f for f in reference_files if f.filename != '']
+    input_file = input_files[0]
+    reference_file = reference_files[0]
     
-    if not input_files or not reference_files:
-        return jsonify({'error': 'Please select valid image files'}), 400
-    
-    # Check file extensions
-    for file in input_files + reference_files:
-        if not allowed_file(file.filename):
-            return jsonify({'error': 'Only PNG, JPG, JPEG files allowed'}), 400
+    if not allowed_file(input_file.filename) or not allowed_file(reference_file.filename):
+        return jsonify({'error': 'Only PNG, JPG, JPEG files allowed'}), 400
     
     try:
-        # Save input images
-        saved_input_files = []
-        input_gemini_files = []
+        # Save and upload files
+        input_filename = f"uploads/input/{user_id}_input_{uuid.uuid4().hex[:8]}.jpg"
+        reference_filename = f"uploads/reference/{user_id}_reference_{uuid.uuid4().hex[:8]}.jpg"
         
-        for i, input_file in enumerate(input_files):
-            input_filename = f"uploads/input/{user_id}_input_{i}_{uuid.uuid4().hex[:8]}.jpg"
-            input_file.save(input_filename)
-            saved_input_files.append(input_filename)
-            
-            # Upload to Gemini
-            input_gemini_file = client.files.upload(file=input_filename)
-            input_gemini_files.append(input_gemini_file)
+        input_file.save(input_filename)
+        reference_file.save(reference_filename)
         
-        # Save reference images
-        saved_reference_files = []
-        reference_gemini_files = []
+        input_gemini_file = client.files.upload(file=input_filename)
+        reference_gemini_file = client.files.upload(file=reference_filename)
         
-        for i, reference_file in enumerate(reference_files):
-            reference_filename = f"uploads/reference/{user_id}_reference_{i}_{uuid.uuid4().hex[:8]}.jpg"
-            reference_file.save(reference_filename)
-            saved_reference_files.append(reference_filename)
-            
-            # Upload to Gemini
-            reference_gemini_file = client.files.upload(file=reference_filename)
-            reference_gemini_files.append(reference_gemini_file)
-        
-        # Detect views for both input and reference images
-        print("Detecting input image views...")
-        input_views = detect_image_views(input_gemini_files, "input")
-        print(f"Input views detected: {input_views}")
-        
-        print("Detecting reference image views...")
-        reference_views = detect_image_views(reference_gemini_files, "reference")
-        print(f"Reference views detected: {reference_views}")
-        
-        # Determine if this is multi-view transformation
-        is_multi_view = len(input_files) > 1 and len(reference_files) > 1
-        
-        if is_multi_view:
-            print("Multi-view transformation detected")
-            # Multi-view transformation with spatial consistency
-            matched_pairs = match_views_for_transformation(
-                input_gemini_files, input_views, 
-                reference_gemini_files, reference_views
-            )
-            print(f"Matched pairs: {[(pair[2]) for pair in matched_pairs]}")
-        else:
-            print("Single transformation mode")
-            # Single transformation (original logic)
-            if len(input_gemini_files) == 1:
-                # One input, multiple references
-                matched_pairs = [(input_gemini_files[0], ref_file, f"style_{i+1}") 
-                               for i, ref_file in enumerate(reference_gemini_files)]
-            else:
-                # Multiple inputs, one reference
-                matched_pairs = [(input_file, reference_gemini_files[0], f"input_{i+1}") 
-                               for i, input_file in enumerate(input_gemini_files)]
-        
-        # Generate outputs
+        # Generate 3 variations
         generated_outputs = []
-        all_view_types = [pair[2] for pair in matched_pairs] if is_multi_view else []
         
-        for pair_idx, (input_file, reference_file, view_description) in enumerate(matched_pairs):
-            output_filename = f"generated/{user_id}_output_{pair_idx}_{uuid.uuid4().hex[:8]}.jpg"
+        for variation in range(3):
+            output_filename = f"generated/{user_id}_output_{variation}_{uuid.uuid4().hex[:8]}.jpg"
             
-            if is_multi_view:
-                # Use consistency-focused prompt for multi-view
-                prompt = create_multi_view_consistency_prompt(
-                    view_description, all_view_types, 
-                    selected_style, selected_finish, selected_theme, context
-                )
-            else:
-                # Enhanced single transformation prompt with None handling
-                style_text = ""
-                if selected_style:
-                    style_text = f"- Style: {selected_style.title()} - {get_style_description(selected_style)}\n"
-                
-                finish_text = ""
-                if selected_finish:
-                    finish_text = f"- Finish: {selected_finish.title()} - {get_finish_description(selected_finish)}\n"
-                
-                theme_text = ""
-                if selected_theme:
-                    theme_text = f"- Theme: {selected_theme.title()} - {get_theme_description(selected_theme)}\n"
-                else:
-                    theme_text = "- Theme: Auto-detect room type from context\n"
-                
-# Replace the existing single transformation prompt with this enhanced version:
-                prompt = f"""
-                You are a PROFESSIONAL ARCHITECTURAL RENDERER specializing in realistic interior design transformations.
-
-                🏗️ ARCHITECTURAL REQUIREMENTS (CRITICAL):
-                - Maintain the EXACT room proportions and spatial layout from the input image
-                - Preserve structural integrity and realistic architectural elements
-                - Apply photorealistic lighting with proper shadows and reflections
-                - Ensure materials have authentic textures, depth, and physical properties
-                - Maintain proper perspective and spatial relationships
-
-                🎨 DESIGN TRANSFORMATION REQUIREMENTS:
-                - Extract and apply the COMPLETE design language from the reference image:
-                * Color palettes and material choices
-                * Furniture styles, arrangements, and scale
-                * Lighting fixtures, window treatments, and accessories
-                * Textures, patterns, and surface finishes
-                * Atmospheric qualities and mood
-                - You may modify window styles, ceiling treatments, and architectural details if they enhance the overall design
-                - Furniture placement can be optimized for better flow and functionality
-                - Maintain architectural logic (proper door/window proportions, realistic ceiling heights, etc.)
-
-                🔧 TECHNICAL SPECIFICATIONS:
-                {style_text}{finish_text}{theme_text}
-
-                TRANSFORMATION INSTRUCTIONS:
-                1. Analyze the spatial architecture and proportions of the input room
-                2. Extract the complete aesthetic DNA from the reference image
-                3. Seamlessly blend reference styling with input architecture
-                4. Ensure every surface, material, and element looks professionally rendered
-                5. Apply realistic lighting that enhances both form and function
-                6. Create depth through proper shadows, reflections, and material properties
-                {"7. Prioritize the specified design preferences while maintaining architectural integrity" if selected_style or selected_finish else "7. Let the reference image guide the complete aesthetic transformation"}
-
-                ⚠️ QUALITY CHECKLIST:
-                - Does this look like a professional architectural rendering?
-                - Are proportions and perspectives architecturally sound?
-                - Do materials look authentic with proper texture and depth?
-                - Is the lighting realistic with appropriate shadows?
-                - Would this design be buildable and functional in real life?
-
-                Additional Requirements: {context if context else 'Create a professional architectural rendering that seamlessly blends the spatial qualities of the input with the complete design aesthetic of the reference image.'}
-
-                Generate a photorealistic architectural rendering that maintains structural integrity while achieving complete aesthetic transformation.
-                """
+            # Build prompt (use your existing single transformation prompt)
+            style_text = f"- Style: {selected_style.title()} - {get_style_description(selected_style)}\n" if selected_style else ""
+            finish_text = f"- Finish: {selected_finish.title()} - {get_finish_description(selected_finish)}\n" if selected_finish else ""
+            theme_text = f"- Theme: {selected_theme.title()} - {get_theme_description(selected_theme)}\n" if selected_theme else "- Theme: Auto-detect room type\n"
             
-            # Prepare content
+            layout_instruction = "CRITICAL: Maintain the EXACT room proportions and spatial layout" if preserve_layout else "You may adjust room proportions if needed"
+            realism_instruction = "Apply enhanced photorealistic rendering with professional lighting" if enhance_realism else "Apply standard rendering quality"
+            
+            prompt = f"""
+            You are a PROFESSIONAL ARCHITECTURAL RENDERER (Variation {variation + 1}/3).
+
+            🏗️ ARCHITECTURAL REQUIREMENTS:
+            - {layout_instruction}
+            - {realism_instruction}
+            - Preserve structural integrity and realistic elements
+            - Create authentic material textures with depth
+
+            🎨 DESIGN TRANSFORMATION:
+            {style_text}{finish_text}{theme_text}
+
+            Extract complete design aesthetic from reference while maintaining input architecture.
+            
+            {context if context else 'Create a professional rendering with complete aesthetic transformation.'}
+            
+            Generate variation {variation + 1} with unique design details while staying true to the reference style.
+            """
+            
+            # Generate (use existing generation code)
             contents = [
                 types.Content(
                     role="user",
                     parts=[
-                        types.Part.from_uri(file_uri=input_file.uri, mime_type=input_file.mime_type),
-                        types.Part.from_uri(file_uri=reference_file.uri, mime_type=reference_file.mime_type),
+                        types.Part.from_uri(file_uri=input_gemini_file.uri, mime_type=input_gemini_file.mime_type),
+                        types.Part.from_uri(file_uri=reference_gemini_file.uri, mime_type=reference_gemini_file.mime_type),
                         types.Part.from_text(text=prompt),
                     ],
                 )
             ]
             
-            # Generation config with adjusted parameters for consistency
-            # Generation config with enhanced parameters for architectural accuracy
             config = types.GenerateContentConfig(
-                temperature=0.4 if is_multi_view else 0.5,  # Lower temperature for more consistency
-                top_p=0.75 if is_multi_view else 0.85,     # Reduced randomness for better quality
+                temperature=0.5 + (variation * 0.1),  # Slight variation
+                top_p=0.85,
                 max_output_tokens=8192,
                 response_modalities=["image", "text"],
                 response_mime_type="text/plain",
             )
             
-            # Generate image
-            print(f"Generating {view_description}...")
-            image_generated = False
             for chunk in client.models.generate_content_stream(
                 model="gemini-2.0-flash-exp-image-generation",
                 contents=contents,
@@ -460,52 +878,33 @@ def generate_interior():
                     generated_outputs.append({
                         'filename': output_filename,
                         'url': f'/view_image/{os.path.basename(output_filename)}',
-                        'view_type': view_description,
-                        'pair_index': pair_idx
+                        'variation': variation + 1
                     })
-                    image_generated = True
-                    print(f"Generated {view_description} successfully")
                     break
-            
-            if not image_generated:
-                return jsonify({'error': f'Failed to generate image for {view_description}'}), 500
         
-        # Store session data
+        # Store session
         session['current_images'] = [output['filename'] for output in generated_outputs]
-        session['original_inputs'] = saved_input_files
-        session['original_references'] = saved_reference_files
+        session['original_input'] = input_filename
+        session['original_reference'] = reference_filename
         session['tweaks_used'] = 0
         session['generation_params'] = {
             'style': selected_style,
             'finish': selected_finish,
             'theme': selected_theme,
             'context': context,
-            'is_multi_view': is_multi_view
+            'preserve_layout': preserve_layout,
+            'enhance_realism': enhance_realism
         }
-        session['view_info'] = [{'view_type': output['view_type']} for output in generated_outputs]
         
         return jsonify({
             'success': True,
-            'images': [{'url': output['url'], 'view_type': output['view_type']} for output in generated_outputs],
+            'images': [{'url': output['url'], 'variation': output['variation']} for output in generated_outputs],
             'tweaks_remaining': 3 - session['tweaks_used'],
-            'total_generated': len(generated_outputs),
-            'generation_type': 'multi_view' if is_multi_view else 'single',
-            'view_mapping': input_views if is_multi_view else None,
-            'detected_views': {
-                'input': input_views,
-                'reference': reference_views
-            }
+            'total_generated': 3
         })
         
     except Exception as e:
-        print(f"Error in generate_interior: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        
-        # Clean up files on error
-        for f in saved_input_files + saved_reference_files:
-            if os.path.exists(f):
-                os.remove(f)
+        # Error handling (keep existing)
         return jsonify({'error': str(e)}), 500
 
 @app.route('/tweak', methods=['POST'])
@@ -537,68 +936,34 @@ def tweak_image():
         # Upload current image to Gemini
         current_gemini_file = client.files.upload(file=current_image_path)
         
-        # Create tweak prompt
+        # Get generation parameters
         params = session.get('generation_params', {})
-        view_info = session.get('view_info', [{}])
-        current_view = view_info[image_index].get('view_type', 'current view') if image_index < len(view_info) else 'current view'
         
-        # Enhanced tweak prompt for multi-view consistency
-        # Replace the existing tweak prompts with these enhanced versions:
-
-        if params.get('is_multi_view', False):
-            prompt = f"""
-            🔧 PROFESSIONAL ARCHITECTURAL MODIFICATION - Multi-View Connected Space
-            
-            You are making precise modifications to the {current_view} of a CONNECTED architectural space with views: {', '.join(all_views)}
-            
-            ⚠️ CRITICAL ARCHITECTURAL CONSISTENCY:
-            - This modification must maintain PERFECT consistency with other views of the same room
-            - PRESERVE structural integrity and realistic material properties  
-            - ENSURE changes look professionally executed with proper depth and texture
-            - MAINTAIN consistent lighting, shadows, and atmospheric conditions
-            - KEEP the same material choices and color accuracy across all views
-            
-            🎯 MODIFICATION REQUEST:
-            {tweak_instruction}
-            
-            🔧 PROFESSIONAL EXECUTION REQUIREMENTS:
-            ✅ Apply changes with architectural precision and realism
-            ✅ Maintain photorealistic material properties and textures
-            ✅ Ensure proper lighting and shadow integration
-            ✅ Preserve the {params.get('style', 'current')} style consistency
-            ✅ Keep {params.get('finish', 'current')} surface finish quality
-            ✅ Stay true to the {params.get('theme', 'current')} space function
-            ✅ Ensure changes integrate seamlessly with other room views
-            ✅ Maintain professional architectural rendering standards
-            ✅ Create realistic depth, not flat 2D-like modifications
-            
-            EXECUTE the modification with professional architectural precision while maintaining perfect consistency with other views of this connected space.
-            """
-        else:
-            prompt = f"""
-            🔧 PROFESSIONAL ARCHITECTURAL MODIFICATION
-            
-            You are a professional architectural renderer making precise modifications to this interior space.
-            
-            MODIFICATION REQUEST:
-            {tweak_instruction}
-            
-            🏗️ ARCHITECTURAL EXECUTION STANDARDS:
-            - Apply changes with realistic material properties and authentic textures
-            - Ensure proper lighting integration with realistic shadows and reflections  
-            - Maintain architectural logic and structural believability
-            - Create three-dimensional depth, not flat surface changes
-            - Preserve photorealistic rendering quality throughout
-            - Ensure modifications look professionally executed and buildable
-            
-            DESIGN CONSISTENCY:
-            - Maintain the overall {params.get('style', 'current')} design language
-            - Preserve {params.get('finish', 'current')} surface finish quality  
-            - Keep true to the {params.get('theme', 'current')} space functionality
-            - Ensure changes enhance rather than compromise the design
-            
-            Execute this modification with professional precision, creating realistic three-dimensional changes that integrate seamlessly with the existing architecture and design.
-            """
+        # Create tweak prompt
+        prompt = f"""
+        🔧 PROFESSIONAL ARCHITECTURAL MODIFICATION
+        
+        You are a professional architectural renderer making precise modifications to this interior space.
+        
+        MODIFICATION REQUEST:
+        {tweak_instruction}
+        
+        🏗️ ARCHITECTURAL EXECUTION STANDARDS:
+        - Apply changes with realistic material properties and authentic textures
+        - Ensure proper lighting integration with realistic shadows and reflections  
+        - Maintain architectural logic and structural believability
+        - Create three-dimensional depth, not flat surface changes
+        - Preserve photorealistic rendering quality throughout
+        - Ensure modifications look professionally executed and buildable
+        
+        DESIGN CONSISTENCY:
+        - Maintain the overall {params.get('style', 'current')} style consistency
+        - Preserve {params.get('finish', 'current')} surface finish quality  
+        - Keep true to the {params.get('theme', 'current')} room function
+        - Ensure changes enhance rather than compromise the design
+        
+        Execute this modification with professional precision, creating realistic three-dimensional changes that integrate seamlessly with the existing architecture and design.
+        """
         
         # Prepare content for tweaking
         contents = [
@@ -611,11 +976,10 @@ def tweak_image():
             )
         ]
         
-        # Generation config
-        # Generation config for tweaks
+        # Generation config for precise modifications
         config = types.GenerateContentConfig(
-            temperature=0.3 if params.get('is_multi_view') else 0.4,  # Very low for precise modifications
-            top_p=0.7 if params.get('is_multi_view') else 0.8,
+            temperature=0.4,  # Low temperature for precise modifications
+            top_p=0.8,
             max_output_tokens=8192,
             response_modalities=["image", "text"],
             response_mime_type="text/plain",
@@ -649,7 +1013,6 @@ def tweak_image():
                 'image_url': f'/view_image/{os.path.basename(tweaked_filename)}',
                 'tweaks_remaining': 3 - session['tweaks_used'],
                 'image_index': image_index,
-                'view_type': current_view
             })
         else:
             return jsonify({'error': 'No tweaked image generated'}), 500
